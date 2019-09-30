@@ -1,0 +1,108 @@
+<html>
+    <head>
+        <title>Image Upload</title>
+        <link href="{{ url_for('static', filename='bootstrap.min.css') }}" rel="stylesheet">
+        <script src="{{ url_for('static', filename='bootstrap.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='popper.min.js') }}"></script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h1 class="display-4">
+                        Image Prediction
+                    </h1>
+                    <div class="row" style="padding: 15px;">
+                        <form id="upload-file" method="post" enctype="multipart/form-data">
+                            <label for="imageUpload" class="upload-label">
+                                Choose Image
+                            </label><br>
+                            <input type="file" name="image" id="imageUpload" accept=".png, .jpg, .jpeg" onChange="PreviewImage(this);">
+                        </form>
+                        <div class="image-section" style="display:none;">
+                                <div>
+                                    <button type="button" class="btn btn-primary btn-lg " id="btn-predict">Predict!</button>
+                                </div>
+                        </div>
+                        <div class="loader" style="display:none;"></div>
+                    </div>
+                    <p style="padding:20px">
+                        </p>
+                    <div class="row">
+                            <img style="max-width: 350px;max-height:350px;" src="" id="DisplayImage">
+                    </div>
+                </div>
+                <div class="col-lg-5 offset-lg-1">
+                        <p style="padding:40px">
+                            </p>
+                        <h3 id="result" style="font-size:20px;">
+                                <span> </span>
+                        </h3>
+                </div>
+            </div>
+        </div>
+        
+    </body>
+</html>
+<script>
+
+function PreviewImage(input){
+   $('#DisplayImage')[0].src = (window.URL ? URL : webkitURL).createObjectURL(input.files[0]);
+}
+
+$(document).ready(function () {
+    // Init
+    $('.image-section').hide();
+    $('.loader').hide();
+    $('#result').hide();
+
+    // Upload Preview
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#imagePreview').css('background-image', 'url(' + e.target.result + ')');
+                $('#imagePreview').hide();
+                $('#imagePreview').fadeIn(650);
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    $("#imageUpload").change(function () {
+        $('.image-section').show();
+        $('#btn-predict').show();
+        $('#result').text('');
+        $('#result').hide();
+        readURL(this);
+    });
+
+    $('#btn-predict').click(function () {
+        var form_data = new FormData($('#upload-file')[0]);
+
+        // Show loading animation
+        $(this).hide();
+        $('.loader').show();
+
+        // Make prediction by calling api /predict
+        $.ajax({
+            type: 'POST',
+            url: '/UploadImage',
+            data: form_data,
+            contentType: false,
+            cache: false,
+            processData: false,
+            async: true,
+            success: function (data) {
+                // Get and display the result
+                $('.loader').hide();
+                $('#result').fadeIn(600);
+                $('#result').text(' Result:  ' + data);
+                console.log('Success!');
+            },
+        });
+    });
+
+});
+</script>
